@@ -9,7 +9,7 @@ public class AdoNetService
     public AdoNetService()
     {
         // Connection string para SQLite - mesmo arquivo usado pelo EF
-        _connectionString = "Data Source=loja.db";
+        this._connectionString = "Data Source=loja.db";
     }
 
     // ========== CONSULTAS COMPLEXAS ==========
@@ -619,7 +619,7 @@ public class AdoNetService
     // ========== UTILIDADES ==========
     private SQLiteConnection GetConnection()
     {
-        return new SQLiteConnection(_connectionString);
+        return new SQLiteConnection(this._connectionString);
     }
 
 
