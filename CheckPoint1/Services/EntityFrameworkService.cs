@@ -70,33 +70,40 @@ public class EntityFrameworkService
             Console.WriteLine("Não existem categorias cadastradas. Cadastre uma categoria primeiro.");
             return;
         }
+
         Console.WriteLine("Categorias disponíveis:");
         foreach (var cat in categorias)
         {
             Console.WriteLine($"{cat.Id} - {cat.Nome}");
         }
+
         Console.Write("Digite o Id da categoria: ");
         if (!int.TryParse(Console.ReadLine(), out var categoriaId))
         {
             Console.WriteLine("Id inválido!");
             return;
         }
+
         var categoria = this._context.Categorias.Find(categoriaId);
         if (categoria == null)
         {
             Console.WriteLine("Categoria não encontrada!");
             return;
         }
+
         Console.Write("Nome do produto: ");
         var nome = Console.ReadLine();
+
         Console.Write("Descrição (opcional): ");
         var descricao = Console.ReadLine();
+
         Console.Write("Preço: R$ ");
         if (!decimal.TryParse(Console.ReadLine(), out var preco) || preco <= 0)
         {
             Console.WriteLine("Preço inválido!");
             return;
         }
+
         Console.Write("Estoque inicial: ");
         if (!int.TryParse(Console.ReadLine(), out var estoque) || estoque < 0)
         {
@@ -108,6 +115,7 @@ public class EntityFrameworkService
             Console.WriteLine("Nome é obrigatório!");
             return;
         }
+
         var produto = new Produto
         {
             Nome = nome,
@@ -129,11 +137,13 @@ public class EntityFrameworkService
             .Include(p => p.Categoria)
             .OrderBy(p => p.Id)
             .ToList();
+
         if (!produtos.Any())
         {
             Console.WriteLine("Nenhum produto encontrado.");
             return;
         }
+        
         Console.WriteLine();
         foreach (var produto in produtos)
         {
