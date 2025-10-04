@@ -22,7 +22,7 @@ public class AdoNetService
         connection.Open();
 
         var query = @"
-            SELECT 
+            select 
                 p.NumeroPedido,
                 c.Nome as NomeCliente,
                 pr.Nome as NomeProduto,
@@ -31,12 +31,12 @@ public class AdoNetService
                 (pi.Quantidade * pi.PrecoUnitario - COALESCE(pi.Desconto, 0)) as Subtotal,
                 p.DataPedido,
                 p.Status
-            FROM Pedidos p
-            INNER JOIN Clientes c ON p.ClienteId = c.Id
-            INNER JOIN PedidoItens pi ON p.Id = pi.PedidoId
-            INNER JOIN Produtos pr ON pi.ProdutoId = pr.Id
-            WHERE p.Status != 5  -- Não cancelado
-            ORDER BY p.DataPedido DESC, p.NumeroPedido, pr.Nome";
+            from Pedidos p
+            inner join Clientes c ON p.ClienteId = c.Id
+            inner join PedidoItens pi ON p.Id = pi.PedidoId
+            inner join Produtos pr ON pi.ProdutoId = pr.Id
+            where p.Status != 5  -- Não cancelado
+            order by p.DataPedido DESC, p.NumeroPedido, pr.Nome";
 
         using var command = new SQLiteCommand(query, connection);
         using var reader = command.ExecuteReader();
@@ -85,17 +85,17 @@ public class AdoNetService
         var connection = GetConnection();
         connection.Open();
         var query = @"
-            SELECT 
+            select 
                 c.Nome as Cliente,
                 c.Email,
-                SUM(p.ValorTotal) as ValorTotalPedidos,
-                COUNT(p.Id) as QuantidadePedidos,
-                AVG(p.ValorTotal) as TicketMedio
-            FROM Clientes c
-            LEFT JOIN Pedidos p ON c.Id = p.ClienteId AND p.Status != 5  -- Não cancelado
-            GROUP BY c.Id, c.Nome, c.Email
-            HAVING COUNT(p.Id) > 0
-            ORDER BY ValorTotalPedidos DESC, c.Nome";
+                sum(p.ValorTotal) as ValorTotalPedidos,
+                count(p.Id) as QuantidadePedidos,
+                avg(p.ValorTotal) as TicketMedio
+            from Clientes c
+            left join Pedidos p ON c.Id = p.ClienteId AND p.Status != 5  -- Não cancelado
+            group by c.Id, c.Nome, c.Email
+            having count(p.Id) > 0
+            order by ValorTotalPedidos desc, c.Nome";
         using var command = new SQLiteCommand(query, connection);
         using var reader = command.ExecuteReader();
         Console.WriteLine();
@@ -119,19 +119,19 @@ public class AdoNetService
         connection.Open();
 
         var query = @"
-            SELECT 
+            select 
                 p.Id,
                 p.Nome,
                 c.Nome as Categoria,
                 p.Preco,
                 p.Estoque,
                 (p.Preco * p.Estoque) as ValorParado
-            FROM Produtos p
-            INNER JOIN Categorias c ON p.CategoriaId = c.Id
-            LEFT JOIN PedidoItens pi ON p.Id = pi.ProdutoId
-            WHERE pi.ProdutoId IS NULL
-            AND p.Ativo = 1
-            ORDER BY ValorParado DESC, p.Nome";
+            from Produtos p
+            inner join Categorias c on p.CategoriaId = c.Id
+            left join PedidoItens pi on p.Id = pi.ProdutoId
+            where pi.ProdutoId is null
+            and p.Ativo = 1
+            order by ValorParado desc, p.Nome";
 
         using var command = new SQLiteCommand(query, connection);
         using var reader = command.ExecuteReader();
@@ -175,7 +175,7 @@ public class AdoNetService
         using var connection = GetConnection();
         connection.Open();
 
-        var queryCategorias = "SELECT Id, Nome FROM Categorias ORDER BY Id";
+        var queryCategorias = "select Id, Nome from Categorias order by Id";
         using var commandCategorias = new SQLiteCommand(queryCategorias, connection);
         using var readerCategorias = commandCategorias.ExecuteReader();
 
@@ -196,10 +196,10 @@ public class AdoNetService
         }
 
         var queryProdutos = @"
-            SELECT p.Id, p.Nome, p.Estoque 
-            FROM Produtos p 
-            WHERE p.CategoriaId = @categoriaId AND p.Ativo = 1
-            ORDER BY p.Nome";
+            select p.Id, p.Nome, p.Estoque 
+            from Produtos p 
+            where p.CategoriaId = @categoriaId AND p.Ativo = 1
+            order by p.Nome";
 
         using var commandProdutos = new SQLiteCommand(queryProdutos, connection);
         commandProdutos.Parameters.AddWithValue("@categoriaId", categoriaId);
@@ -238,7 +238,7 @@ public class AdoNetService
                 continue;
             }
 
-            var queryUpdate = "UPDATE Produtos SET Estoque = @estoque WHERE Id = @id";
+            var queryUpdate = "update Produtos set Estoque = @estoque where Id = @id";
             using var commandUpdate = new SQLiteCommand(queryUpdate, connection, transaction);
             commandUpdate.Parameters.AddWithValue("@estoque", novaQuantidade);
             commandUpdate.Parameters.AddWithValue("@id", produto.Id);
@@ -262,7 +262,7 @@ public class AdoNetService
         using var connection = GetConnection();
         connection.Open();
 
-        var queryClientes = "SELECT Id, Nome, Email FROM Clientes WHERE Ativo = 1 ORDER BY Id";
+        var queryClientes = "select Id, Nome, Email from Clientes where Ativo = 1 ORDER BY Id";
         using var commandClientes = new SQLiteCommand(queryClientes, connection);
         using var readerClientes = commandClientes.ExecuteReader();
 
@@ -283,7 +283,7 @@ public class AdoNetService
             return;
         }
 
-        var queryValidarClientes = "SELECT COUNT(*) FROM Clientes WHERE Id = @id AND Ativo = 1";
+        var queryValidarClientes = "select count(*) from Clientes where Id = @id AND Ativo = 1";
         using var commandValidar = new SQLiteCommand(queryValidarClientes, connection);
         commandValidar.Parameters.AddWithValue("@id", clienteId);
         if (Convert.ToInt32(commandValidar.ExecuteScalar()) == 0)
@@ -292,15 +292,15 @@ public class AdoNetService
             return;
         }
 
-        var queryUltimoPedido = "SELECT COALESCE(MAX(Id), 0) + 1 FROM Pedidos";
+        var queryUltimoPedido = "select coalesce(max(Id), 0) + 1 from Pedidos";
         using var commandUltimo = new SQLiteCommand(queryUltimoPedido, connection);
         var proximoId = Convert.ToInt32(commandUltimo.ExecuteScalar());
         var numeroPedido = $"PED-{proximoId:D3}";
 
         using var transaction = connection.BeginTransaction();
         var queryInserirPedido = @"
-            INSERT INTO Pedidos (NumeroPedido, DataPedido, Status, ValorTotal, ClienteId)
-            VALUES (@numero, @data, @status, @valor, @clienteId)";
+            insert into Pedidos (NumeroPedido, DataPedido, Status, ValorTotal, ClienteId)
+            values (@numero, @data, @status, @valor, @clienteId)";
 
         using var commandPedido = new SQLiteCommand(queryInserirPedido, connection, transaction);
         commandPedido.Parameters.AddWithValue("@numero", numeroPedido);
@@ -323,11 +323,11 @@ public class AdoNetService
         while (continuarAdicionando)
         {
             var queryProdutos = @"
-                SELECT p.Id, p.Nome, p.Preco, p.Estoque, c.Nome as Categoria
-                FROM Produtos p
-                INNER JOIN Categorias c ON p.CategoriaId = c.Id
-                WHERE p.Ativo = 1 AND p.Estoque > 0
-                ORDER BY p.Id";
+                select p.Id, p.Nome, p.Preco, p.Estoque, c.Nome as Categoria
+                from Produtos p
+                inner JOIN Categorias c ON p.CategoriaId = c.Id
+                where p.Ativo = 1 AND p.Estoque > 0
+                order by p.Id";
 
             using var commandProdutos = new SQLiteCommand(queryProdutos, connection, transaction);
             using var readerProdutos = commandProdutos.ExecuteReader();
@@ -349,7 +349,7 @@ public class AdoNetService
                 break;
             }
 
-            var queryValidarProduto = "SELECT Preco, Estoque FROM Produtos WHERE Id = @id AND Ativo = 1";
+            var queryValidarProduto = "select Preco, Estoque from Produtos where Id = @id and Ativo = 1";
             using var commandValidarProd = new SQLiteCommand(queryValidarProduto, connection, transaction);
             commandValidarProd.Parameters.AddWithValue("@id", produtoId);
             using var readerValidar = commandValidarProd.ExecuteReader();
@@ -379,8 +379,8 @@ public class AdoNetService
             }
 
             var queryIserirItem = @"
-                INSERT INTO PedidoItens (PedidoId, ProdutoId, Quantidade, PrecoUnitario)
-                VALUES (@pedidoId, @produtoId, @quantidade, @preco)";
+                insert into PedidoItens (PedidoId, ProdutoId, Quantidade, PrecoUnitario)
+                values (@pedidoId, @produtoId, @quantidade, @preco)";
 
             using var commandItem = new SQLiteCommand(queryIserirItem, connection, transaction);
             commandItem.Parameters.AddWithValue("@pedidoId", pedidoId);
@@ -406,7 +406,7 @@ public class AdoNetService
             continuarAdicionando = Console.ReadLine()?.ToUpper() == "S";
         }
 
-        var queryAtualizarValor = "UPDATE Pedidos SET ValorTotal = @valor WHERE Id = @id";
+        var queryAtualizarValor = "update Pedidos set ValorTotal = @valor where Id = @id";
         using var commandValor = new SQLiteCommand(queryAtualizarValor, connection, transaction);
         commandValor.Parameters.AddWithValue("@valor", valorTotal);
         commandValor.Parameters.AddWithValue("@id", pedidoId);
@@ -425,7 +425,7 @@ public class AdoNetService
         connection.Open();
         var dataLimite = DateTime.Now.AddMonths(-6);
 
-        var query = "DELETE FROM Pedidos WHERE Status = 5 AND DataPedido < @dataLimite";
+        var query = "delete from Pedidos where Status = 5 and DataPedido < @dataLimite";
         using var command = new SQLiteCommand(query, connection);
         command.Parameters.AddWithValue("@dataLimite", dataLimite);
         var linhasAfetadas = command.ExecuteNonQuery();
@@ -442,11 +442,11 @@ public class AdoNetService
         connection.Open();
 
         var queryListarProdutos = @"
-            SELECT p.Id, p.NumeroPedido, c.Nome as Cliente, p.DataPedido, p.Status, p.ValorTotal
-            FROM Pedidos p
-            INNER JOIN Clientes c ON p.ClienteId = c.Id
-            WHERE p.Status = 4  -- Entregue
-            ORDER BY p.DataPedido DESC";
+            select p.Id, p.NumeroPedido, c.Nome as Cliente, p.DataPedido, p.Status, p.ValorTotal
+            from Pedidos p
+            inner join Clientes c ON p.ClienteId = c.Id
+            where p.Status = 4
+            order by p.DataPedido DESC";
         
         using var commandListar = new SQLiteCommand(queryListarProdutos, connection);
         using var readerListar = commandListar.ExecuteReader();
@@ -473,10 +473,10 @@ public class AdoNetService
         }
 
         var querySelectProduto = @"
-            SELECT p.Id, p.NumeroPedido, p.Status, p.ValorTotal, c.Nome as Cliente
-            FROM Pedidos p
-            INNER JOIN Clientes c ON p.ClienteId = c.Id
-            WHERE p.Id = @id";
+            select p.Id, p.NumeroPedido, p.Status, p.ValorTotal, c.Nome as Cliente
+            from Pedidos p
+            inner join Clientes c ON p.ClienteId = c.Id
+            where p.Id = @id";
 
         using var commandPedido = new SQLiteCommand(querySelectProduto, connection);
         commandPedido.Parameters.AddWithValue("@id", pedidoId);
@@ -507,10 +507,10 @@ public class AdoNetService
         }
 
         var queryItens = @"
-            SELECT pi.Id, pi.Quantidade, pi.PrecoUnitario, pr.Nome as Produto, pr.Id as ProdutoId
-            FROM PedidoItens pi
-            INNER JOIN Produtos pr ON pi.ProdutoId = pr.Id
-            WHERE pi.PedidoId = @pedidoId";
+            select pi.Id, pi.Quantidade, pi.PrecoUnitario, pr.Nome as Produto, pr.Id as ProdutoId
+            from PedidoItens pi
+            inner join Produtos pr ON pi.ProdutoId = pr.Id
+            where pi.PedidoId = @pedidoId";
 
         using var commandItens = new SQLiteCommand(queryItens, connection);
         commandItens.Parameters.AddWithValue("@pedidoId", pedidoId);
@@ -575,16 +575,16 @@ public class AdoNetService
         connection.Open();
 
         var query = @"
-            SELECT 
+            select 
                 strftime('%Y', DataPedido) as Ano,
                 strftime('%m', DataPedido) as Mes,
-                COUNT(Id) as QuantidadePedidos,
-                SUM(ValorTotal) as FaturamentoMensal,
-                AVG(ValorTotal) as TicketMedio
-            FROM Pedidos
-            WHERE Status != 5  -- Não cancelado
-            GROUP BY strftime('%Y-%m', DataPedido)
-            ORDER BY Ano, Mes";
+                count(Id) as QuantidadePedidos,
+                sum(ValorTotal) as FaturamentoMensal,
+                avg(ValorTotal) as TicketMedio
+            from Pedidos
+            where Status != 5
+            group by strftime('%Y-%m', DataPedido)
+            order by Ano, Mes";
 
         using var command = new SQLiteCommand(query, connection);
         using var reader = command.ExecuteReader();
@@ -630,27 +630,27 @@ public class AdoNetService
         using var connection = GetConnection();
         connection.Open();
 
-        Console.WriteLine("✓ Conexão estabelecida com sucesso!");
+        Console.WriteLine("Conexão estabelecida com sucesso!");
         Console.WriteLine($"Banco de dados: {connection.DataSource}");
         Console.WriteLine($"Versão SQLite: {connection.ServerVersion}");
 
-        var sqlTotalCategorias = "SELECT COUNT(*) as TotalCategorias FROM Categorias";
+        var sqlTotalCategorias = "select count(*) as TotalCategorias from Categorias";
         using var command = new SQLiteCommand(sqlTotalCategorias, connection);
         var totalCategorias = Convert.ToInt32(command.ExecuteScalar());
 
         Console.WriteLine($"Total de categorias: {totalCategorias}");
 
-        var queryTotalProdutos = "SELECT COUNT(*) as TotalProdutos FROM Produtos";
+        var queryTotalProdutos = "select count(*) as TotalProdutos from Produtos";
         using var commandProdutos = new SQLiteCommand(queryTotalProdutos, connection);
         var totalProdutos = Convert.ToInt32(commandProdutos.ExecuteScalar());
         Console.WriteLine($"Total de produtos: {totalProdutos}");
 
-        var queryTotalClientes = "SELECT COUNT(*) as TotalClientes FROM Clientes";
+        var queryTotalClientes = "select count(*) as TotalClientes from Clientes";
         using var commandClientes = new SQLiteCommand(queryTotalClientes, connection);
         var totalClientes = Convert.ToInt32(commandClientes.ExecuteScalar());
         Console.WriteLine($"Total de clientes: {totalClientes}");
 
-        var queryTabelas = "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name";
+        var queryTabelas = "select name from sqlite_master where type='table' ORDER BY name";
         using var commandTabelas = new SQLiteCommand(queryTabelas, connection);
         using var reader = commandTabelas.ExecuteReader();
 
