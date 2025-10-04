@@ -938,7 +938,7 @@ public class EntityFrameworkService
 
             if (faturamentoAnterior.HasValue && faturamentoAnterior > 0)
             {
-                var percentual = ((venda.Faturamento - faturamentoAnterior.Value) / faturamentoAnterior.Value) * 100;
+                var percentual = (venda.Faturamento - faturamentoAnterior.Value) / faturamentoAnterior.Value * 100;
                 crescimento = $"{percentual:+0.0;-0.0;0.0}%";
             }
 
