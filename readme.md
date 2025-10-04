@@ -1,10 +1,10 @@
-﻿Integrantes:
-Felipe Heilmann Marques - RM551026
-Ian Cancian Nachtergaele - RM98387
+﻿## Integrantes
 
+- Felipe Heilmann Marques - RM551026
+- Ian Cancian Nachtergaele - RM98387
 
-**OBS:
+---
 
-Professor, encontrei um erro no projeto... No menu tinha uma opção de CalcularComissão, entretanto não tinha explicação de como deveria ser feito, pois não tinha funcionário, não teria como calcular a comissão. 
-Eu conversei com outros grupos e o pessoal também não entendeu muito bem essa parte. Por isso, eu e os outros grupos não implementamos esse método.
+**Observação:**
 
+Durante o desenvolvimento do projeto, identificamos uma inconsistência no menu referente à opção "Calcular Comissão". Não havia informações suficientes sobre como implementar essa funcionalidade, pois não existia um cadastro de funcionário, tornando inviável o cálculo da comissão. Após conversar com outros grupos, percebemos que essa dúvida era comum e, por esse motivo, optamos por não implementar esse método.
