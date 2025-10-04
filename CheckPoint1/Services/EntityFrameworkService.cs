@@ -432,7 +432,7 @@ public class EntityFrameworkService
         Console.WriteLine();
 
         var continuarAdicionando = true;
-        var valorTotal = 0.0m;
+        var valorTotal = 0.0;
 
         while (continuarAdicionando)
         {
@@ -492,7 +492,7 @@ public class EntityFrameworkService
 
             produto.Estoque -= quantidade;
 
-            valorTotal += item.Subtotal;
+            valorTotal += (double)item.Subtotal;
 
             Console.WriteLine($"Item adicionado: {produto.Nome} x{quantidade} = R$ {item.Subtotal:F2}");
 
@@ -500,7 +500,7 @@ public class EntityFrameworkService
             continuarAdicionando = Console.ReadLine()?.ToUpper() == "S";
         }
 
-        pedido.ValorTotal = valorTotal;
+        pedido.ValorTotal = (decimal)valorTotal;
         this._context.SaveChanges();
 
         Console.WriteLine($"Pedido {numeroPedido} finalizado com sucesso!");

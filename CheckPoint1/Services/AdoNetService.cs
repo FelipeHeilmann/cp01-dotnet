@@ -109,7 +109,6 @@ public class AdoNetService
             var ticketMedio = Convert.ToDecimal(reader["TicketMedio"]);
             Console.WriteLine($"{cliente,-25} {email,-30} R$ {valorTotal,-12:F2} {quantidadePedidos,-12} R$ {ticketMedio,-9:F2}");
         }
-
     }
 
     public void ProdutosSemVenda()
@@ -318,7 +317,7 @@ public class AdoNetService
 
         Console.WriteLine($"Pedido {numeroPedido} criado! Adicione os itens:");
 
-        var valorTotal = 0m;
+        var valorTotal = 0.0;
         var continuarAdicionando = true;
 
         while (continuarAdicionando)
@@ -398,7 +397,7 @@ public class AdoNetService
 
             commandEstoque.ExecuteNonQuery();
 
-            var subtotal = quantidade * precoProduto;
+            var subtotal = (double)(quantidade * precoProduto);
             valorTotal += subtotal;
 
             Console.WriteLine($"Item adicionado! Subtotal: R$ {subtotal:F2}");
@@ -474,10 +473,10 @@ public class AdoNetService
         }
 
         var querySelectProduto = @"
-                    SELECT p.Id, p.NumeroPedido, p.Status, p.ValorTotal, c.Nome as Cliente
-                    FROM Pedidos p
-                    INNER JOIN Clientes c ON p.ClienteId = c.Id
-                    WHERE p.Id = @id";
+            SELECT p.Id, p.NumeroPedido, p.Status, p.ValorTotal, c.Nome as Cliente
+            FROM Pedidos p
+            INNER JOIN Clientes c ON p.ClienteId = c.Id
+            WHERE p.Id = @id";
 
         using var commandPedido = new SQLiteCommand(querySelectProduto, connection);
         commandPedido.Parameters.AddWithValue("@id", pedidoId);
